@@ -1,4 +1,4 @@
-const path = require("path")
+const path = require("path");
 
 module.exports = {
   entry: "./app/Main.js",
@@ -12,7 +12,8 @@ module.exports = {
   devServer: {
     port: 3000,
     contentBase: path.join(__dirname, "app"),
-    hot: true
+    hot: true,
+    historyApiFallback: { index: "index.html" }
   },
   module: {
     rules: [
@@ -28,4 +29,4 @@ module.exports = {
       }
     ]
   }
-}
+};
