@@ -11,14 +11,6 @@ function ViewSinglePost() {
   const [isLoading, setIsLoading] = useState(true);
   const [post, setPost] = useState();
 
-  if (isLoading) {
-    return (
-      <Page title="...">
-        <LoadingDotsIcon />
-      </Page>
-    );
-  }
-
   useEffect(() => {
     const ourRequest = Axios.CancelToken.source();
 
@@ -37,6 +29,14 @@ function ViewSinglePost() {
     };
   }, []);
 
+  if (isLoading) {
+    return (
+      <Page title="...">
+        <LoadingDotsIcon />
+      </Page>
+    );
+  }
+
   const date = new Date(post.createdDate);
   const dateFormatted = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 
@@ -45,9 +45,9 @@ function ViewSinglePost() {
       <div className="d-flex justify-content-between">
         <h2>{post.title}</h2>
         <span className="pt-2">
-          <a href="#" data-tip="Edit" data-for="edit" className="text-primary mr-2">
+          <Link to={`/post/${post._id}/edit`} data-tip="Edit" data-for="edit" className="text-primary mr-2">
             <i className="fas fa-edit"></i>
-          </a>
+          </Link>
           <ReactTooltip id="edit" className="custom-tooltip" />{" "}
           <a data-tip="Delete" data-for="delete" className="delete-post-button text-danger">
             <i className="fas fa-trash"></i>
