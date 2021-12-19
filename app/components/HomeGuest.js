@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Page from "./Page";
 import Axios from "axios";
 import { useImmerReducer } from "use-immer";
 import { CSSTransition } from "react-transition-group";
+import DispatchContext from "../DispatchContext";
 
 function HomeGuest() {
+  const appDispatch = useContext(DispatchContext);
+
   const initialState = {
     username: {
       value: "",
@@ -47,7 +50,7 @@ function HomeGuest() {
           draft.username.hasErrors = true;
           draft.username.message = "Username must be at least 3 characters.";
         }
-        if (!draft.hasErrors) {
+        if (!draft.hasErrors && !action.noRequest) {
           draft.username.checkCount++;
         }
         return;
@@ -69,7 +72,7 @@ function HomeGuest() {
           draft.email.hasErrors = true;
           draft.email.message = "You must provide a valid email address.";
         }
-        if (!draft.email.hadErrors) {
+        if (!draft.email.hasErrors && !action.noRequest) {
           draft.email.checkCount++;
         }
         return;
@@ -85,7 +88,7 @@ function HomeGuest() {
       case "passwordImmediately":
         draft.password.hasErrors = false;
         draft.password.value = action.value;
-        if (draft.password.Value.length > 50) {
+        if (draft.password.value.length > 50) {
           draft.password.hasErrors = true;
           draft.password.message = "Password cannot exceed 50 characters.";
         }
@@ -97,6 +100,9 @@ function HomeGuest() {
         }
         return;
       case "submitForm":
+        if (!draft.username.hasErrors && draft.username.isUnique && !draft.email.hasErrors && draft.email.isUnique && !draft.password.hasErrors) {
+          draft.submitCount++;
+        }
         return;
     }
   }
@@ -156,8 +162,32 @@ function HomeGuest() {
     }
   }, [state.email.checkCount]);
 
+  useEffect(() => {
+    if (state.submitCount) {
+      const ourRequest = Axios.CancelToken.source();
+      async function fetchResults() {
+        try {
+          const response = await Axios.post("/register", { username: state.username.value, email: state.email.value, password: state.password.value }, { cancelToken: ourRequest.token });
+          appDispacth({ type: "login", data: response.data });
+          appDispacth({ type: "flashMessage", value: "Welcome to your new account" });
+        } catch (e) {
+          console.log("There was a problemn or the request was cancelled.");
+        }
+      }
+      fetchResults();
+      return () => ourRequest.cancel();
+    }
+  }, [state.submitCount]);
+
   function handleSubmit(e) {
     e.preventDefault();
+    dispatch({ type: "usernameImmediately", value: state.username.value });
+    dispatch({ type: "usernameAfterDelay", value: state.username.value, noRequest: true });
+    dispatch({ type: "emailImmediately", value: state.email.value });
+    dispatch({ type: "emailAfterDelay", value: state.email.value, noRequest: true });
+    dispatch({ type: "passwordImmediately", value: state.password.value });
+    dispatch({ type: "passwordAfterDelay", value: state.password.value });
+    dispatch({ type: "submitForm" });
   }
 
   return (
